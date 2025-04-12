@@ -8,11 +8,16 @@ def has_excessive_swipes(swipe_times, k):
     window = deque()
     max_window = []
     for time in swipe_times:
+        print(f"Checking time: {time.strftime('%H:%M:%S')}")
         window.append(time)
+        log(f"Window after adding time {time.strftime('%H:%M:%S')}: {[t.strftime('%H:%M:%S') for t in window]}")
         while (time - window[0]) > timedelta(hours=1):
-            window.popleft()
+            removed = window.popleft()
+            log(f"Removing time {removed.strftime('%H:%M:%S')} as it is outside the 1-hour window", "bad")
         if len(window) > len(max_window):
             max_window = list(window)
+            log(f"New max window: {[t.strftime('%H:%M:%S') for t in max_window]}", "good")
+    log(f"Final max window: {[t.strftime("%H:%M:%S") for t in max_window]}")
     return (len(max_window) > k), [t.strftime("%H:%M:%S") for t in max_window]
 
 
@@ -29,7 +34,7 @@ def generate_random_time(base_hour=None):
 
 def log(msg, level="info"):
     colors = {"info": "\033[34m", "good": "\033[92m", "bad": "\033[31m"}
-    print(f"{colors[level]}{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} - {msg}\033[0m")
+    print(f"{colors[level]}{msg}\033[0m")
 
 
 if __name__ == "__main__":
@@ -37,7 +42,7 @@ if __name__ == "__main__":
     for _ in range(20):  # Generate users
         user_id = random.randint(0, 100)
         clustered_hour = random.randint(0, 23)
-        for _ in range(25):  # Generate multiple swipes
+        for _ in range(30):  # Generate multiple swipes
             if random.random() < 0.2:
                 timestamp = generate_random_time(clustered_hour)
             else:
@@ -47,7 +52,7 @@ if __name__ == "__main__":
     log(f"Here are available user ids: {[swipe for swipe in badge_swipes_map.keys()]}")
     while True:
         print()
-        user_id_index = int(input("Enter index of user ID to check for excessive swipe-ins in an hour (or -1 to quit):"))
+        user_id_index = int(input("Enter index of user ID to check for excessive swipe-ins in an hour (or -1 to quit): "))
         try:
             user_id = [swipe for swipe in badge_swipes_map.keys()][user_id_index]
         except IndexError:
@@ -63,4 +68,4 @@ if __name__ == "__main__":
             log(f"User {user_id} has more than {k} swipes in a single hour.", "bad")
         else:
             log(f"User {user_id} does NOT exceed 7 swipes in any one-hour period.", "good")
-        log(f"Swipe times within the most active hour window ({len(swipes_in_hour)} swipes):")
+        log(f"Swipe times within the most active hour window ({len(swipes_in_hour)} swipes).")
